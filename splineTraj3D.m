@@ -1,9 +1,9 @@
 addpath('Stretch');
 
 %% Initial settings
-refPointsX = [0 1 5 10 20 12  2 -5 -5 2];     % [m] position in X-axis
-refPointsY = [0 0 0 -1 -5  2 10 10  8 4];     % [m] position in Y-axis
-refPointsZ = [0 2 2  4  4 10 15 10  5 0];     % [m] position in Z-axis
+refPointsX = linspace(0, 100, 50);        % [m] position in X-axis
+refPointsY = [0 2*ones(1, 48) 0];        % [m] position in Y-axis
+refPointsZ = [0 4*ones(1, 48) 0];        % [m] position in Z-axis
 
 lenRef = max([length(refPointsX), length(refPointsY), length(refPointsZ)]);
 
@@ -124,7 +124,7 @@ plot(newTime, newSplineXYZ(2,1:end), '-r', 'LineWidth', 1.5)
 plot(linspace(0, newTime(end), lenRef), refPointsY, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
 legend({'Position'; 'Ref points'})
 ylabel('Distance [m]')
-title('X-Axis')
+title('Y-Axis')
 
 subplot(4, 1, 2)
 hold on
@@ -159,7 +159,7 @@ plot(newTime, newSplineXYZ(3,1:end), '-r', 'LineWidth', 1.5)
 plot(linspace(0, newTime(end), lenRef), refPointsZ, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
 legend({'Position'; 'Ref points'})
 ylabel('Distance [m]')
-title('X-Axis')
+title('Z-Axis')
 
 subplot(4, 1, 2)
 hold on
