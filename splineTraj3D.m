@@ -1,9 +1,9 @@
 addpath('Stretch');
 
 %% Initial settings
-refPointsX = linspace(0, 100, 50);        % [m] position in X-axis
-refPointsY = [0 2*ones(1, 48) 0];        % [m] position in Y-axis
-refPointsZ = [0 4*ones(1, 48) 0];        % [m] position in Z-axis
+refPointsX = cos(linspace(0, 4*2*pi, 50));        % [m] position in X-axis
+refPointsY = sin(linspace(0, 4*2*pi, 50));        % [m] position in Y-axis
+refPointsZ = linspace(0, 10, 50);        % [m] position in Z-axis
 
 lenRef = max([length(refPointsX), length(refPointsY), length(refPointsZ)]);
 
@@ -24,13 +24,25 @@ time = linspace(0, refTime, sampleFreq*refTime);
 splTimeRef = linspace(0, refTime, lenRef);
 
 % Add conditions to derivatives (speed = acceleration = 0 at start and end)
-refPositionWderX = addZeros(refPointsX, [1, 1, lenRef, lenRef]);
-refPositionWderY = addZeros(refPointsY, [1, 1, lenRef, lenRef]);
-refPositionWderZ = addZeros(refPointsZ, [1, 1, lenRef, lenRef]);
+zeroJerk = false;   % if zero jerk at start and end is desired, this should be 'true'
 
-dSplTimeRef = addZeros(splTimeRef, [1, 1]);
-lenTime = length(dSplTimeRef);
-dSplTimeRef = addValueAt(dSplTimeRef, [lenTime, lenTime], dSplTimeRef(end));
+if ~zeroJerk
+    refPositionWderX = addZeros(refPointsX, [1, 1, lenRef, lenRef]);
+    refPositionWderY = addZeros(refPointsY, [1, 1, lenRef, lenRef]);
+    refPositionWderZ = addZeros(refPointsZ, [1, 1, lenRef, lenRef]);
+    
+    dSplTimeRef = addZeros(splTimeRef, [1, 1]);
+    lenTime = length(dSplTimeRef);
+    dSplTimeRef = addValueAt(dSplTimeRef, [lenTime, lenTime], dSplTimeRef(end));
+else
+    refPositionWderX = addZeros(refPointsX, [1, 1, 1, lenRef, lenRef, lenRef]);
+    refPositionWderY = addZeros(refPointsY, [1, 1, 1, lenRef, lenRef, lenRef]);
+    refPositionWderZ = addZeros(refPointsZ, [1, 1, 1, lenRef, lenRef, lenRef]);
+    
+    dSplTimeRef = addZeros(splTimeRef, [1, 1, 1]);
+    lenTime = length(dSplTimeRef);
+    dSplTimeRef = addValueAt(dSplTimeRef, [lenTime, lenTime, lenTime], dSplTimeRef(end));
+end
 
 % Create curves
 knots = optknt(dSplTimeRef, order);
@@ -60,7 +72,7 @@ i = 0;
 while ~doneStretching
     if ~isempty(failIndexSpeed) || ~isempty(failIndexAccel) || ~isempty(failIndexJerk)
         [newTime, newSplineXYZ] = stretch3DCurve(refTime, factor^i, lenRef, ...
-            [refPositionWderX ; refPositionWderY ; refPositionWderZ], sampleFreq, order);
+            [refPositionWderX ; refPositionWderY ; refPositionWderZ], sampleFreq, order, zeroJerk);
 
         [curvesX, curvesY, curvesZ, linCurves] = computeDiff(newTime, ...
             newSplineXYZ(1,1:end), newSplineXYZ(2,1:end), newSplineXYZ(3,1:end));
