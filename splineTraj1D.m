@@ -47,7 +47,7 @@ i = 0;
 
 while ~doneStretching
     if ~isempty(failIndexSpeed) || ~isempty(failIndexAccel) || ~isempty(failIndexJerk)
-        [newTime, newPoints] = stretch1DCurve(refTime, factor^i, refPoints, refPositionWder, sampleFreq, order);
+        [newTime, newPoints] = stretch1DCurve(refTime, factor^i, lenRef, refPositionWder, sampleFreq, order);
         hSplSpeed = diff(newPoints)./diff(newTime);
         hSplAccel = diff(hSplSpeed)./diff(newTime(1:end-1));
         hSplJerk = diff(hSplAccel)./diff(newTime(1:end-2));

@@ -54,9 +54,9 @@ function varargout = computeDiff(varargin)
         hSplJerkZ = diff(hSplAccelZ)./diff(time(1,1:end-2));
 
         for i = 1:length(hSplSpeedX)
-            linSpeed(i) = norm([hSplSpeedX(i) hSplSpeedY(i) hSplJerkZ(i)]);
+            linSpeed(i) = norm([hSplSpeedX(i) hSplSpeedY(i) hSplSpeedZ(i)]);
             if i <= length(hSplSpeedX)-1 
-                linAccel(i) = norm([hSplAccelX(i) hSplAccelY(i) hSplJerkZ(i)]);
+                linAccel(i) = norm([hSplAccelX(i) hSplAccelY(i) hSplAccelZ(i)]);
                 if i <= length(hSplSpeedX)-2 
                     linJerk(i) = norm([hSplJerkX(i) hSplJerkY(i) hSplJerkZ(i)]);
                 end

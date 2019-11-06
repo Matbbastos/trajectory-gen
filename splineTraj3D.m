@@ -1,9 +1,9 @@
 addpath('Stretch');
 
 %% Initial settings
-refPointsX = [0 1 5 10 20 12  2 -5 0];     % [m] position in X-axis
-refPointsY = [0 0 0 -1 -5  2 10 10 0];     % [m] position in Y-axis
-refPointsZ = [0 2 2  4  4 10 15 10 0];     % [m] position in Z-axis
+refPointsX = [0 1 5 10 20 12  2 -5 -5 2];     % [m] position in X-axis
+refPointsY = [0 0 0 -1 -5  2 10 10  8 4];     % [m] position in Y-axis
+refPointsZ = [0 2 2  4  4 10 15 10  5 0];     % [m] position in Z-axis
 
 lenRef = max([length(refPointsX), length(refPointsY), length(refPointsZ)]);
 
@@ -57,12 +57,13 @@ factor = 1.05;
 doneStretching = false;
 i = 0;
 
-% Adapt to 3 dimensions from here on
 while ~doneStretching
     if ~isempty(failIndexSpeed) || ~isempty(failIndexAccel) || ~isempty(failIndexJerk)
-        [newTime, newSplineXY] = stretch2DCurve(refTime, factor^i, lenRef, [refPositionWderX ; refPositionWderY], sampleFreq, order);
+        [newTime, newSplineXYZ] = stretch3DCurve(refTime, factor^i, lenRef, ...
+            [refPositionWderX ; refPositionWderY ; refPositionWderZ], sampleFreq, order);
 
-        [curvesX, curvesY, linCurves] = computeDiff(newTime, newSplineXY(1,1:end), newSplineXY(2,1:end));
+        [curvesX, curvesY, curvesZ, linCurves] = computeDiff(newTime, ...
+            newSplineXYZ(1,1:end), newSplineXYZ(2,1:end), newSplineXYZ(3,1:end));
 
         failIndexSpeed = checkConstraints(linCurves(1,1:end), maxLinSpeed);
         failIndexAccel = checkConstraints(linCurves(2,1:end-1), maxLinAccel);
@@ -78,13 +79,13 @@ end
 
 %% Plots
 % X-axis
-f = figure('NumberTitle', 'off', 'Name', 'High order 2D Fitting Test - X-axis');
+f = figure('NumberTitle', 'off', 'Name', 'High order 3D Fitting Test - X-axis');
 f.WindowState = 'maximized';
 
 subplot(4, 1, 1)
 hold on
 grid on
-plot(newTime, newSplineXY(1,1:end), '-r', 'LineWidth', 1.5)
+plot(newTime, newSplineXYZ(1,1:end), '-r', 'LineWidth', 1.5)
 plot(linspace(0, newTime(end), lenRef), refPointsX, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
 legend({'Position'; 'Ref points'})
 ylabel('Distance [m]')
@@ -113,13 +114,13 @@ xlabel('Time [s]')
 ylabel('Jerk [m/s^3]')
 
 % Y-axis
-f = figure('NumberTitle', 'off', 'Name', 'High order 2D Fitting - Y-axis');
+f = figure('NumberTitle', 'off', 'Name', 'High order 3D Fitting - Y-axis');
 f.WindowState = 'maximized';
 
 subplot(4, 1, 1)
 hold on
 grid on
-plot(newTime, newSplineXY(2,1:end), '-r', 'LineWidth', 1.5)
+plot(newTime, newSplineXYZ(2,1:end), '-r', 'LineWidth', 1.5)
 plot(linspace(0, newTime(end), lenRef), refPointsY, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
 legend({'Position'; 'Ref points'})
 ylabel('Distance [m]')
@@ -147,22 +148,58 @@ legend({'Jerk'})
 xlabel('Time [s]')
 ylabel('Jerk [m/s^3]')
 
+% Z-axis
+f = figure('NumberTitle', 'off', 'Name', 'High order 3D Fitting - Z-axis');
+f.WindowState = 'maximized';
+
+subplot(4, 1, 1)
+hold on
+grid on
+plot(newTime, newSplineXYZ(3,1:end), '-r', 'LineWidth', 1.5)
+plot(linspace(0, newTime(end), lenRef), refPointsZ, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
+legend({'Position'; 'Ref points'})
+ylabel('Distance [m]')
+title('X-Axis')
+
+subplot(4, 1, 2)
+hold on
+grid on
+plot(newTime(1:end-1), curvesZ(1,1:end), '-b', 'LineWidth', 1.5)
+legend({'Speed'})
+ylabel('Speed [m/s]')
+
+subplot(4, 1, 3)
+hold on
+grid on
+plot(newTime(1:end-2), curvesZ(2,1:end-1), '-m', 'LineWidth', 1.5)
+legend({'Acceleration'})
+ylabel('Acceleration [m/s^2]')
+
+subplot(4, 1, 4)
+hold on
+grid on
+plot(newTime(1:end-3), curvesZ(3,1:end-2), '-g', 'LineWidth', 1.5)
+legend({'Jerk'})
+xlabel('Time [s]')
+ylabel('Jerk [m/s^3]')
+
 % Linear
-f = figure('NumberTitle', 'off', 'Name', 'High order 2D Fitting - XY-Plane');
+f = figure('NumberTitle', 'off', 'Name', 'High order 3D Fitting - XYZ Space');
 f.WindowState = 'maximized';
 
 hold on
 grid on
-plot(newSplineXY(1,1:end), newSplineXY(2,1:end), '-r', 'LineWidth', 1.5)
-plot(refPointsX, refPointsY, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
+plot3(newSplineXYZ(1,1:end), newSplineXYZ(2,1:end), newSplineXYZ(3,1:end), '-r', 'LineWidth', 1.5)
+plot3(refPointsX, refPointsY, refPointsZ, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
 legend({'Position'; 'Ref points'})
 xlabel('X-axis [m]')
 ylabel('Y-axis [m]')
+zlabel('Z-axis [m]')
 axis equal
-title('Position in XY-Plane')
+title('Position in XYZ Space')
 
 
-f = figure('NumberTitle', 'off', 'Name', 'High order 2D Fitting - Linear Derivatives');
+f = figure('NumberTitle', 'off', 'Name', 'High order 3D Fitting - Linear Derivatives');
 f.WindowState = 'maximized';
 
 subplot(3, 1, 1)
