@@ -66,7 +66,7 @@ while ~doneStretching
         continue
     end
     doneStretching = true;
-    fprintf('\nStretched time %d times, by a total factor of %f\n', i, factor^i)
+    fprintf('\nStretched time %d times, by a total factor of %f\n', i-1, factor^(i-1))
     fprintf('Original duration of trajectory: %f s\nNew duration: %f s\n', refTime, newTime(end))
 end
 

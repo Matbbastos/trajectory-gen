@@ -58,7 +58,7 @@ while ~doneStretching
         continue
     end
     doneStretching = true;
-    fprintf('\nStretched time %d times, by a total factor of %f\n', i, factor^i)
+    fprintf('\nStretched time %d times, by a total factor of %f\n', i-1, factor^(i-1))
     fprintf('Original duration of trajectory: %f s\nNew duration: %f s\n', refTime, newTime(end))
 end
 
@@ -138,36 +138,36 @@ ylabel('Jerk [m/s^3]')
 % currently working with only one point. If there is more than one point to
 % stretch, the indexes do not behave as desired. Also, there is no
 % implementation on how to get the indexes, it is manually as of now.
-lenTime = length(time);
-
-indexFailStart = 150;
-indexFailEnd = 200;
-
-periodFailStart = indexFailStart*time(end)/lenTime;
-periodFailEnd = indexFailEnd*time(end)/lenTime;
-
-pointsTimeFail = find((splTimeRef >= periodFailStart) & (splTimeRef <= periodFailEnd));
-pointsToAdd = zeros(length(pointsTimeFail), 3);
-stepSize = (splTimeRef(2) - splTimeRef(1))/2;
-
-refPointsCopy = refPoints;
-for i = 1:length(pointsTimeFail)
-    pointsToAdd(i, 1) = fnval(splTimeRef(pointsTimeFail(i)) - stepSize, hSplCurve);
-    pointsToAdd(i, 2) = refPointsCopy(pointsTimeFail(i));
-    pointsToAdd(i, 3) = fnval(splTimeRef(pointsTimeFail(i)) + stepSize, hSplCurve);
-end
-
-for i = 1:length(pointsTimeFail)
-    newRefPoints = [refPointsCopy(1:pointsTimeFail(i)-1) pointsToAdd(i,1:end) refPointsCopy(pointsTimeFail(i)+1:end)];
-    refPointsCopy = newRefPoints;
-end
-
-limit = round(refTime(end)+length(pointsTimeFail)*stepSize);
-novoTime = linspace(0, limit, sampleFreq*limit);
-nSplTimeRef = linspace(0, limit, length(newRefPoints));
-nHSplCurve = spapi(optknt(nSplTimeRef, order), nSplTimeRef, newRefPoints);
-nHSplPoints = fnval(novoTime, nHSplCurve);
-nHSplSpeed = fnval(novoTime, fnder(nHSplCurve));
+% lenTime = length(time);
+% 
+% indexFailStart = 150;
+% indexFailEnd = 200;
+% 
+% periodFailStart = indexFailStart*time(end)/lenTime;
+% periodFailEnd = indexFailEnd*time(end)/lenTime;
+% 
+% pointsTimeFail = find((splTimeRef >= periodFailStart) & (splTimeRef <= periodFailEnd));
+% pointsToAdd = zeros(length(pointsTimeFail), 3);
+% stepSize = (splTimeRef(2) - splTimeRef(1))/2;
+% 
+% refPointsCopy = refPoints;
+% for i = 1:length(pointsTimeFail)
+%     pointsToAdd(i, 1) = fnval(splTimeRef(pointsTimeFail(i)) - stepSize, hSplCurve);
+%     pointsToAdd(i, 2) = refPointsCopy(pointsTimeFail(i));
+%     pointsToAdd(i, 3) = fnval(splTimeRef(pointsTimeFail(i)) + stepSize, hSplCurve);
+% end
+% 
+% for i = 1:length(pointsTimeFail)
+%     newRefPoints = [refPointsCopy(1:pointsTimeFail(i)-1) pointsToAdd(i,1:end) refPointsCopy(pointsTimeFail(i)+1:end)];
+%     refPointsCopy = newRefPoints;
+% end
+% 
+% limit = round(refTime(end)+length(pointsTimeFail)*stepSize);
+% novoTime = linspace(0, limit, sampleFreq*limit);
+% nSplTimeRef = linspace(0, limit, length(newRefPoints));
+% nHSplCurve = spapi(optknt(nSplTimeRef, order), nSplTimeRef, newRefPoints);
+% nHSplPoints = fnval(novoTime, nHSplCurve);
+% nHSplSpeed = fnval(novoTime, fnder(nHSplCurve));
 
 % Plots
 % f = figure('NumberTitle', 'off', 'Name', 'High order splinetTest');
