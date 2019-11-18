@@ -1,7 +1,7 @@
 addpath('Stretch');
 
 %% Initial settings
-refPoints = [0 2 8 15 10 -1 -5 0];   % [m] position in X-axis
+refPoints = [0 2 8 15 10 22 -1 -5 0];   % [m] position in X-axis
 lenRef = length(refPoints);
 
 maxLinSpeed = 7;    % [m/s]
@@ -16,7 +16,7 @@ for i = 1:(lenRef - 1)
 end
 
 %% High order spline with derivatives and stretching
-order = 5;
+order = 6;
 time = linspace(0, refTime, sampleFreq*refTime);
 splTimeRef = linspace(0, refTime, lenRef);
 
@@ -62,11 +62,37 @@ while ~doneStretching
     fprintf('Original duration of trajectory: %f s\nNew duration: %f s\n', refTime, newTime(end))
 end
 
-% Plots
+%% Ref Plots
+f = figure('NumberTitle', 'off', 'Name', 'High order Fitting - Reference Values');
+f.WindowState = 'maximized';
+
+refCurve = spapi(linspace(0, refTime, length(refPoints)+1), splTimeRef, refPoints);
+nRefPoints = fnval(time, refCurve);
+refSpeed = diff(nRefPoints)./diff(time);
+
+subplot(2, 1, 1)
+hold on
+grid on
+plot(time, nRefPoints, '-r', 'LineWidth', 1.5)
+legend({'Position'})
+ylabel('Distance [m]')
+title('X-Axis')
+
+subplot(2, 1, 2)
+hold on
+grid on
+plot(time(1:end-1), refSpeed, '-b', 'LineWidth', 1.5)
+plot(time, maxLinSpeed*ones(1, length(time)), '--k')
+plot(time, -maxLinSpeed*ones(1, length(time)), '--k')
+legend({'Speed', 'Limits'})
+ylabel('Speed [m/s]')
+xlabel('Time [s]')
+
+%% Plots
 f = figure('NumberTitle', 'off', 'Name', 'High order Fitting - Iterative with derivatives');
 f.WindowState = 'maximized';
 
-subplot(4, 1, 1)
+subplot(2, 1, 1)
 hold on
 grid on
 plot(newTime, newPoints, '-r', 'LineWidth', 1.5)
@@ -75,7 +101,7 @@ legend({'Position'; 'Ref points'})
 ylabel('Distance [m]')
 title('X-Axis')
 
-subplot(4, 1, 2)
+subplot(2, 1, 2)
 hold on
 grid on
 plot(newTime(1:end-1), hSplSpeed, '-b', 'LineWidth', 1.5)
@@ -83,17 +109,22 @@ plot(newTime, maxLinSpeed*ones(1, length(newTime)), '--k')
 plot(newTime, -maxLinSpeed*ones(1, length(newTime)), '--k')
 legend({'Speed', 'Limits'})
 ylabel('Speed [m/s]')
+xlabel('Time [s]')
 
-subplot(4, 1, 3)
+f = figure('NumberTitle', 'off', 'Name', 'High order Fitting - Iterative with derivatives');
+f.WindowState = 'maximized';
+
+subplot(2, 1, 1)
 hold on
 grid on
 plot(newTime(1:end-2), hSplAccel, '-m', 'LineWidth', 1.5)
 plot(newTime, maxLinAccel*ones(1, length(newTime)), '--k')
 plot(newTime, -maxLinAccel*ones(1, length(newTime)), '--k')
 legend({'Acceleration', 'Limits'})
+title('X-Axis')
 ylabel('Acceleration [m/s^2]')
 
-subplot(4, 1, 4)
+subplot(2, 1, 2)
 hold on
 grid on
 plot(newTime(1:end-3), hSplJerk, '-g', 'LineWidth', 1.5)
