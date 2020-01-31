@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import BPoly
+from scipy.interpolate import BPoly, splrep, splev
 from math import ceil
 
 
@@ -27,7 +27,7 @@ def append_derivatives(ref_points, order=1, depth=1):
         else
             y[i][j] = xi
     """
-    return [[ref_points[j] if (i == 0) else 0 for i in range(order+1)] if ((j - depth + 1 <= 0) or (j + depth - 1 >= len(ref_points)-1)) else ref_points[j] for j in range(len(ref_points))]
+    return [[ref_points[j] if (i == 0) else 0 for i in range(order+1)] if ((j - depth + 1 <= 0) or (j + depth - 1 >= len(ref_points)-1)) else [ref_points[j]] for j in range(len(ref_points))]
 
 
 MAX_LIN_SPEED = 7       # [m/s]
@@ -40,31 +40,21 @@ if __name__ == "__main__":
     ref_time = compute_ref_time(ref_points, MAX_LIN_SPEED)
     n_points = int(ceil(SAMPLE_FREQ*ref_time))
 
-    ref_complete = append_derivatives(ref_points, 2, 2)
-    print(ref_complete)
+    ref_complete = append_derivatives(ref_points, 1, 2)
+    print("Reference points with derivatives: ", ref_complete)
 
-    time_vector = np.linspace(0, ref_time, n_points)
-    time_points = np.linspace(0, ref_time, len(ref_points))
-    # spline = BPoly.from_derivatives(BPoly, time_points, ref_complete, 6)
+    time_vector = np.linspace(0, ref_time, num=n_points)
+    time_points = np.linspace(0, ref_time, num=len(ref_points))
+    print("Time points: ", time_points)
+    print("Time vector: ", time_vector)
+    # bSpline = BPoly.from_derivatives(time_points, ref_complete, 3)
+    splineRep = splrep(time_points, ref_points, k=3)
+    spline = splev(time_vector, splineRep)
+    print(spline)
 
-
-# Sample code
-# x = np.arange(0, 2*np.pi+np.pi/4, 2*np.pi/8)
-# y = np.sin(x)
-# tck = interpolate.splrep(x, y, s=0)
-# xnew = np.arange(0, 2*np.pi, np.pi/50)
-# ynew = interpolate.splev(xnew, tck, der=0)
-
-# plt.figure(num=1)
-# plt.plot(x, y, 'x', xnew, ynew, xnew, np.sin(xnew), x, y, 'b')
-# plt.legend(['Linear', 'Cubic Spline', 'True'])
-# plt.axis([-0.05, 6.33, -1.05, 1.05])
-# plt.title('Cubic-spline interpolation')
-
-# yder = interpolate.splev(xnew, tck, der=1)
-# plt.figure(num=2)
-# plt.plot(xnew, yder, xnew, np.cos(xnew), '--')
-# plt.legend(['Cubic Spline', 'True'])
-# plt.axis([-0.05, 6.33, -1.05, 1.05])
-# plt.title('Derivative estimation from spline')
-# plt.show()
+    # Plots
+    plt.figure('Python Plot')
+    plt.plot(time_points, ref_points, '--*r', time_vector, spline, '-b')
+    plt.legend(['Linear', 'Spline'])
+    plt.title('Spline interpolation')
+    plt.show()
