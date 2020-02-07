@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import BPoly, splrep, splev
+from scipy.interpolate import BPoly, splrep, splev, Akima1DInterpolator
 from math import ceil
 
 
@@ -36,21 +36,23 @@ MAX_LIN_JERK = 20       # [m/s^3]
 SAMPLE_FREQ = 100       # [Hz]
 
 if __name__ == "__main__":
-    ref_points = [0, 2, 8, 15, 10, 22, -1, -5, 0]
+    ref_points = [0, 2, 8, 15, 10, 15, 22, -1, -5, 0]
     ref_time = compute_ref_time(ref_points, MAX_LIN_SPEED)
     n_points = int(ceil(SAMPLE_FREQ*ref_time))
+    time_vector = np.linspace(0, ref_time, num=n_points)
+    time_points = np.linspace(0, ref_time, num=len(ref_points))
 
     ref_complete = append_derivatives(ref_points, 1, 2)
     print("Reference points with derivatives: ", ref_complete)
 
-    time_vector = np.linspace(0, ref_time, num=n_points)
-    time_points = np.linspace(0, ref_time, num=len(ref_points))
-    print("Time points: ", time_points)
-    print("Time vector: ", time_vector)
-    # bSpline = BPoly.from_derivatives(time_points, ref_complete, 3)
-    splineRep = splrep(time_points, ref_points, k=3)
-    spline = splev(time_vector, splineRep)
-    print(spline)
+    ref_spline = BPoly.from_derivatives(time_points, ref_complete)
+    spline = ref_spline(time_vector)
+
+    # splineRep = splrep(time_points, ref_points, k=3)
+    # spline = splev(time_vector, splineRep)
+
+    # akima = Akima1DInterpolator(time_points, ref_points)
+    # akimaSpl = akima(time_vector)
 
     # Plots
     plt.figure('Python Plot')
