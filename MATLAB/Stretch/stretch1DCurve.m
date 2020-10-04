@@ -1,6 +1,6 @@
 function [newTime, newSplinePoints] = stretch1DCurve(refTime, factor, lenRef, refPointsWder, sampleFreq, order)
 %stretch1DCurve       Stretch 1D curve in time.
-%     newTime, newSplineXY = stretch1DCurve(t,f,l,dp,s,o) returns the new time vector
+%     newTime, newSplineXY = stretch1DCurve(t,f,l,dp,s,k) returns the new time vector
 %     created after the stretching process and the points in the new spline curves,
 %     in dp. t is the original duration of the trajectory, used to generate newTime,
 %     which is upper bounded by t*f, and has s*t*f points. The new spline points are

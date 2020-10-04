@@ -1,7 +1,7 @@
 addpath('Stretch');
 
 %% Initial settings
-refPoints = [0 2 8 15 10 22 -1 -5 0];   % [m] position in X-axis
+refPoints = [0 2 15 10 22 -1 -8 2 10 0];   % [m] position in X-axis
 lenRef = length(refPoints);
 
 maxLinSpeed = 7;    % [m/s]
@@ -19,6 +19,11 @@ end
 order = 6;
 time = linspace(0, refTime, sampleFreq*refTime);
 splTimeRef = linspace(0, refTime, lenRef);
+
+% Reference scenario
+refDistance = interp1(splTimeRef, refPoints, time);
+speedRef = diff(refDistance)./diff(time);
+accelRef = diff(speedRef)./diff(time(1:end-1));
 
 % Add conditions to derivatives (speed = acceleration = 0 at start and end)
 refPositionWder = addZeros(refPoints, [1, 1, lenRef, lenRef]);
@@ -62,44 +67,76 @@ while ~doneStretching
     fprintf('Original duration of trajectory: %f s\nNew duration: %f s\n', refTime, newTime(end))
 end
 
-%% Ref Plots
-f = figure('NumberTitle', 'off', 'Name', 'High order Fitting - Reference Values');
-f.WindowState = 'maximized';
+%% Save CSV files
+% Reference
+refDistanceData = array2table([time' refDistance'], 'VariableNames', {'time', 'position'});
+writetable(refDistanceData, "data/1DrefDistance.csv", 'WriteVariableNames', true);
 
-refCurve = spapi(linspace(0, refTime, length(refPoints)+1), splTimeRef, refPoints);
-nRefPoints = fnval(time, refCurve);
-refSpeed = diff(nRefPoints)./diff(time);
+refPointsData = array2table([splTimeRef' refPoints'], 'VariableNames', {'time', 'points'});
+writetable(refPointsData, "data/1DrefPoints.csv", 'WriteVariableNames', true);
 
-subplot(2, 1, 1)
+refSpeedData = array2table([time(1:end-1)' speedRef'], 'VariableNames', {'time', 'speed'});
+writetable(refSpeedData, "data/1DrefSpeed.csv", 'WriteVariableNames', true);
+
+refAccelData = array2table([time(1:end-2)' accelRef'], 'VariableNames', {'time', 'accel'});
+writetable(refAccelData, "data/1DrefAccel.csv", 'WriteVariableNames', true);
+
+% Output
+outputPos = array2table([newTime' newPoints'], 'VariableNames', {'time', 'position'});
+writetable(outputPos, "data/1DoutputPos.csv", 'WriteVariableNames', true);
+
+forOutputPoints = array2table([linspace(0, newTime(end), lenRef)' refPoints'], 'VariableNames', {'time', 'points'});
+writetable(forOutputPoints, "data/1DforOutputPoints.csv", 'WriteVariableNames', true);
+
+outputSpeed = array2table([newTime(1:end-1)' hSplSpeed'], 'VariableNames', {'time', 'speed'});
+writetable(outputSpeed, "data/1DoutputSpeed.csv", 'WriteVariableNames', true);
+
+outputAccel = array2table([newTime(1:end-2)' hSplAccel'], 'VariableNames', {'time', 'accel'});
+writetable(outputAccel, "data/1DoutputAccel.csv", 'WriteVariableNames', true);
+
+outputSJerk = array2table([newTime(1:end-3)' hSplJerk'], 'VariableNames', {'time', 'jerk'});
+writetable(outputSJerk, "data/1DoutputJerk.csv", 'WriteVariableNames', true);
+
+%% Reference Scenario
+figure('NumberTitle', 'off', 'Name', 'Reference Values');
+subplot(3,1,1)
+plot(time, refDistance, '-r', 'LineWidth', 1.5)
 hold on
 grid on
-plot(time, nRefPoints, '-r', 'LineWidth', 1.5)
-legend({'Position'})
-ylabel('Distance [m]')
-title('X-Axis')
+plot(splTimeRef, refPoints, 'o',...
+    'MarkerSize', 5, 'MarkerEdgeColor','red',...
+    'MarkerFaceColor', [1 .6 .6])
+ylabel('Position [m]')
+title('Reference')
 
-subplot(2, 1, 2)
+subplot(3,1,2)
+plot(time(1:end-1), speedRef, '-b', 'LineWidth', 1.5)
 hold on
+plot(time, maxLinSpeed*ones(size(time)), '--k', 'LineWidth', 1.0)
+plot(time, -maxLinSpeed*ones(size(time)), '--k', 'LineWidth', 1.0)
 grid on
-plot(time(1:end-1), refSpeed, '-b', 'LineWidth', 1.5)
-plot(time, maxLinSpeed*ones(1, length(time)), '--k')
-plot(time, -maxLinSpeed*ones(1, length(time)), '--k')
-legend({'Speed', 'Limits'})
 ylabel('Speed [m/s]')
+
+subplot(3,1,3)
+plot(time(1:end-2), accelRef, '-g', 'LineWidth', 1.5)
+hold on
+plot(time, maxLinAccel*ones(size(time)), '--k', 'LineWidth', 1.0)
+plot(time, -maxLinAccel*ones(size(time)), '--k', 'LineWidth', 1.0)
+grid on
+ylabel('Acceleration [m/s^2]')
 xlabel('Time [s]')
 
-%% Plots
-f = figure('NumberTitle', 'off', 'Name', 'High order Fitting - Iterative with derivatives');
-f.WindowState = 'maximized';
+%% Output Plots
+figure('NumberTitle', 'off', 'Name', 'Time Stretching with Spline');
 
 subplot(2, 1, 1)
 hold on
 grid on
 plot(newTime, newPoints, '-r', 'LineWidth', 1.5)
-plot(linspace(0, newTime(end), lenRef), refPoints, '-r^', 'LineWidth', 1.5, 'LineStyle', 'none')
+plot(linspace(0, newTime(end), lenRef), refPoints, '-r*', 'LineWidth', 1.5, 'LineStyle', 'none')
 legend({'Position'; 'Ref points'})
 ylabel('Distance [m]')
-title('X-Axis')
+title('Output')
 
 subplot(2, 1, 2)
 hold on
@@ -111,8 +148,7 @@ legend({'Speed', 'Limits'})
 ylabel('Speed [m/s]')
 xlabel('Time [s]')
 
-f = figure('NumberTitle', 'off', 'Name', 'High order Fitting - Iterative with derivatives');
-f.WindowState = 'maximized';
+figure('NumberTitle', 'off', 'Name', 'Time Stretching with Spline');
 
 subplot(2, 1, 1)
 hold on
@@ -121,7 +157,7 @@ plot(newTime(1:end-2), hSplAccel, '-m', 'LineWidth', 1.5)
 plot(newTime, maxLinAccel*ones(1, length(newTime)), '--k')
 plot(newTime, -maxLinAccel*ones(1, length(newTime)), '--k')
 legend({'Acceleration', 'Limits'})
-title('X-Axis')
+title('Output')
 ylabel('Acceleration [m/s^2]')
 
 subplot(2, 1, 2)
